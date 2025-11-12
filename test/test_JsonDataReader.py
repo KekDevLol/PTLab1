@@ -13,7 +13,12 @@ class TestJsonDataReader:
 
     def _create_temp_json(self, data):
         """Вспомогательный метод для создания временного JSON-файла """
-        temp_file = tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.json', encoding='utf-8')
+        temp_file = tempfile.NamedTemporaryFile(
+            mode='w',
+            delete=False,
+            suffix='.json',
+            encoding='utf-8'
+        )
         json.dump(data, temp_file)
         temp_file.close()
         return temp_file.name

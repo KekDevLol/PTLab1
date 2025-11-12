@@ -1,6 +1,7 @@
 import json
 from TextDataReader import DataReader
 
+
 class JsonDataReader(DataReader):
 
     def read(self, path: str):
