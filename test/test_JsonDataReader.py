@@ -1,48 +1,14 @@
 import json
-import pytest
 import tempfile
 import os
+import pytest
 from src.JsonDataReader import JsonDataReader
+from Types import DataType
 
-
-class TestJsonDataReader:
-
-    def setup_method(self):
-        """Подготовка общих данных или объектов перед каждым тестом """
-        self.reader = JsonDataReader()
-
-    def _create_temp_json(self, data):
-        """Вспомогательный метод для создания временного JSON-файла """
-        temp_file = tempfile.NamedTemporaryFile(
-            mode='w',
-            delete=False,
-            suffix='.json',
-            encoding='utf-8'
-        )
-        json.dump(data, temp_file)
-        temp_file.close()
-        return temp_file.name
-
-    def test_json_with_debt(self):
-        data = {
-            "Иванов Иван Иванович": {
-                "математика": 67,
-                "литература": 100,
-                "программирование": 50
-            },
-            "Петров Петр Петрович": {
-                "математика": 78,
-                "химия": 87,
-                "социология": 61
-            }
-        }
-        temp_path = self._create_temp_json(data)
-        result = self.reader.read(temp_path)
-        assert result == ["Иванов Иван Иванович"]
-        os.remove(temp_path)
-
-    def test_json_no_debt(self):
-        data = {
+class TestDataReader:
+    def test_json_data_reader_valid_file(self):
+        """Тест: корректный JSON-файл"""
+        sample_data = {
             "Иванов Иван Иванович": {
                 "математика": 67,
                 "литература": 100,
@@ -54,46 +20,121 @@ class TestJsonDataReader:
                 "социология": 61
             }
         }
-        temp_path = self._create_temp_json(data)
-        result = self.reader.read(temp_path)
-        assert result == []
-        os.remove(temp_path)
 
-    def test_json_all_have_debt(self):
-        data = {
-            "Иванов Иван Иванович": {
-                "математика": 60,
-                "литература": 55
-            },
-            "Петров Петр Петрович": {
-                "физика": 40,
-                "химия": 50
-            }
-        }
-        temp_path = self._create_temp_json(data)
-        result = self.reader.read(temp_path)
-        assert set(result) == {"Иванов Иван Иванович", "Петров Петр Петрович"}
-        os.remove(temp_path)
+        with tempfile.NamedTemporaryFile(
+                mode='w',
+                delete=False,
+                suffix='.json',
+                encoding='utf-8'
+        ) as f:
+            json.dump(sample_data, f)
+            temp_path = f.name
 
-    def test_json_empty(self):
-        data = {}
-        temp_path = self._create_temp_json(data)
-        result = self.reader.read(temp_path)
-        assert result == []
-        os.remove(temp_path)
+        try:
+            reader = JsonDataReader()
+            result: DataType = reader.read(temp_path)
 
-    def test_json_missing_score(self):
-        data = {
-            "Иванов Иван Иванович": {},
-            "Петров Петр Петрович": {
-                "физика": 60
-            }
-        }
-        temp_path = self._create_temp_json(data)
-        result = self.reader.read(temp_path)
-        assert result == ["Петров Петр Петрович"]
-        os.remove(temp_path)
+            assert result == sample_data
+            assert "Иванов Иван Иванович" in result
+            assert "математика" in result["Иванов Иван Иванович"]
+            assert result["Иванов Иван Иванович"]["математика"] == 67
+        finally:
+            os.unlink(temp_path)
 
-    def test_file_not_found(self):
+    def test_json_data_reader_invalid_json(self):
+        """Тест: файл содержит некорректный JSON"""
+        with tempfile.NamedTemporaryFile(
+                mode='w',
+                delete=False,
+                suffix='.json',
+                encoding='utf-8'
+        ) as f:
+            f.write("not a json")
+            temp_path = f.name
+
+        try:
+            reader = JsonDataReader()
+
+            with pytest.raises(json.JSONDecodeError):
+                reader.read(temp_path)
+        finally:
+            os.unlink(temp_path)
+
+    def test_json_data_reader_nonexistent_file(self):
+        """Тест: файл не существует"""
+        reader = JsonDataReader()
+
         with pytest.raises(FileNotFoundError):
-            self.reader.read("nonexistent.json")
+            reader.read("/path/that/does/not/exist.json")
+
+    def test_json_data_reader_invalid_structure_wrong_top_level(self):
+        """Тест: JSon содержит массив вместо объекта"""
+        wrong_data = ["wrong", "data", "format"]
+
+        with tempfile.NamedTemporaryFile(
+                mode='w',
+                delete=False,
+                suffix='.json',
+                encoding='utf-8'
+        ) as f:
+            json.dump(wrong_data, f)
+            temp_path = f.name
+
+        try:
+            reader = JsonDataReader()
+
+            with pytest.raises(ValueError, match="JSON должен содержать объект"):
+                reader.read(temp_path)
+        finally:
+            os.unlink(temp_path)
+
+
+    def test_json_data_reader_invalid_structure_non_dict_value(self):
+        """Тест: значение для студента не объект"""
+        wrong_data = {
+            "Иванов Иван Иванович": "not a dict"
+        }
+
+        with tempfile.NamedTemporaryFile(
+                mode='w',
+                delete=False,
+                suffix='.json',
+                encoding='utf-8'
+        ) as f:
+            json.dump(wrong_data, f)
+            temp_path = f.name
+
+        try:
+            reader = JsonDataReader()
+
+            with pytest.raises(ValueError, match="Значение для ключа 'Иванов Иван Иванович' "
+                                                 "должно быть объектом"):
+                reader.read(temp_path)
+        finally:
+            os.unlink(temp_path)
+
+    def test_json_data_reader_invalid_structure_non_int_grade(self):
+        """Тест: оценка не целое число"""
+        wrong_data = {
+            "Иванов Иван Иванович": {
+                "математика": "not an int"
+            }
+        }
+
+        with tempfile.NamedTemporaryFile(
+                mode='w',
+                delete=False,
+                suffix='.json',
+                encoding='utf-8'
+        ) as f:
+            json.dump(wrong_data, f)
+            temp_path = f.name
+
+        try:
+            reader = JsonDataReader()
+
+            with pytest.raises(ValueError, match="Оценка 'not an int' для предмета "
+                                                 "'математика' должна быть целым числом"):
+                reader.read(temp_path)
+        finally:
+            os.unlink(temp_path)
