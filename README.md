@@ -29,7 +29,7 @@
 - **Типизация**: `typing`
 
 ## Диаграмма классов:
-![UML Class Diagram](https://github.com/user-attachments/assets/94fe6904-3e0a-4998-b0a0-6ad40a737dea)
+<img width="1897" height="496" alt="image" src="https://github.com/user-attachments/assets/7437c525-a058-4794-8e28-0ae95c557d94"/>
 
 ## Выводы по работе:
 В ходе выполнения лабораторной работы были достигнуты все поставленные цели:
