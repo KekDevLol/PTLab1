@@ -5,6 +5,7 @@ import pytest
 from src.JsonDataReader import JsonDataReader
 from Types import DataType
 
+
 class TestDataReader:
     def test_json_data_reader_valid_file(self):
         """Тест: корректный JSON-файл"""
@@ -83,11 +84,12 @@ class TestDataReader:
         try:
             reader = JsonDataReader()
 
-            with pytest.raises(ValueError, match="JSON должен содержать объект"):
+            with pytest.raises(
+                    ValueError,
+                    match="JSON должен содержать объект"):
                 reader.read(temp_path)
         finally:
             os.unlink(temp_path)
-
 
     def test_json_data_reader_invalid_structure_non_dict_value(self):
         """Тест: значение для студента не объект"""
@@ -107,7 +109,9 @@ class TestDataReader:
         try:
             reader = JsonDataReader()
 
-            with pytest.raises(ValueError, match="Значение для ключа 'Иванов Иван Иванович' "
+            with pytest.raises(
+                    ValueError,
+                    match="Значение для ключа 'Иванов Иван Иванович' "
                                                  "должно быть объектом"):
                 reader.read(temp_path)
         finally:
@@ -133,8 +137,10 @@ class TestDataReader:
         try:
             reader = JsonDataReader()
 
-            with pytest.raises(ValueError, match="Оценка 'not an int' для предмета "
-                                                 "'математика' должна быть целым числом"):
+            with pytest.raises(
+                    ValueError,
+                    match="Оценка 'not an int' для предмета "
+                    "'математика' должна быть целым числом"):
                 reader.read(temp_path)
         finally:
             os.unlink(temp_path)
