@@ -112,7 +112,7 @@ class TestDataReader:
             with pytest.raises(
                     ValueError,
                     match="Значение для ключа 'Иванов Иван Иванович' "
-                                                 "должно быть объектом"):
+                    "должно быть объектом"):
                 reader.read(temp_path)
         finally:
             os.unlink(temp_path)
