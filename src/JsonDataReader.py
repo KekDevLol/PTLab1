@@ -25,7 +25,8 @@ class JsonDataReader(DataReader):
             data = json.load(file)
 
         if not isinstance(data, dict):
-            raise ValueError("JSON должен содержать объект (dict) верхнего уровня.")
+            raise ValueError("JSON должен содержать объект "
+                             "(dict) верхнего уровня.")
 
         for key, value in data.items():
             if not isinstance(value, dict):
