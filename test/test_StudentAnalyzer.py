@@ -2,6 +2,7 @@ import pytest
 from src.StudentAnalyzer import StudentAnalyzer
 from src.Types import DataType
 
+
 class TestStudentAnalyzer:
 
     def test_no_students_with_debt(self):
